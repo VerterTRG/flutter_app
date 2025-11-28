@@ -37,8 +37,8 @@ class _InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(color: color, child: InkWell(onTap: onTap, child: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Icon(TabConfig.icon(type)), // Берем иконку из конфига
-      Text('${TabConfig.title(type)}: $count') // Берем название из конфига
+      Icon(TabConfig.icon(type), color: Theme.of(context).colorScheme.onSecondaryFixed,), // Берем иконку из конфига
+      Text('${TabConfig.title(type)}: $count', style: TextStyle(color: Theme.of(context).colorScheme.onSecondaryFixed)) // Берем название из конфига
     ]))));
   }
 }
@@ -54,7 +54,7 @@ class ClientsScreen extends StatelessWidget {
     
     return Padding(padding: const EdgeInsets.all(20), child: Column(children: [
       TextField(controller: nameController, decoration: const InputDecoration(labelText: 'ФИО Клиента')),
-      ElevatedButton(onPressed: () { context.read<AppState>().addClient(nameController.text); nameController.clear(); }, child: const Text('Создать')),
+      FilledButton(onPressed: () { context.read<AppState>().addClient(nameController.text); nameController.clear(); }, child: const Text('Создать')),
       Expanded(child: ListView(
         children: state.clients.map((c) => ListTile(
           title: Text(c.name),
@@ -82,7 +82,7 @@ class AddressesScreen extends StatelessWidget {
       Row(children: [
         Expanded(child: DropdownButtonFormField<String>(value: selectedClientId, items: state.clients.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(), onChanged: (val) => selectedClientId = val, decoration: const InputDecoration(labelText: 'Клиент'))),
         IconButton(
-          icon: const Icon(Icons.add_circle, color: Colors.blue), 
+          icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary), 
           // ! БЕЗ ХАРДКОДА: Просто передаем Тип и ID текущего таба
           onPressed: () => context.read<AppState>().openTab(TabType.createClient, sourceTabId: tabId)
         )

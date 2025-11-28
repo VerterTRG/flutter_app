@@ -25,8 +25,16 @@ class AppState extends ChangeNotifier {
   void addInvoice(String clientId, String addressId) { invoices.add(Invoice(DateTime.now().toString(), clientId, addressId)); notifyListeners(); }
 
   // === НАВИГАЦИЯ ===
-  List<TabItem> tabs = [];
-  int activeTabIndex = -1;
+  List<TabItem> tabs = [
+    TabItem(
+      id: TabType.dashboard.name, 
+      title: TabConfig.title(TabType.dashboard), 
+      icon: TabConfig.icon(TabType.dashboard), 
+      screen: DashboardScreen(tabId: TabType.dashboard.name)
+    )
+  ];
+  // int activeTabIndex = -1;
+  int activeTabIndex = 0;
 
   // ГЛАВНЫЙ МЕТОД ОТКРЫТИЯ
   // type: Тип вкладки
@@ -90,6 +98,9 @@ class AppState extends ChangeNotifier {
   }
 
   void closeTab(int index) {
+    // ЗАЩИТА: Не даем закрыть Dashboard (если вдруг UI позволит)
+    if (tabs[index].id == TabType.dashboard.name) return;
+    
     tabs.removeAt(index);
     if (tabs.isEmpty) {
       activeTabIndex = -1;
