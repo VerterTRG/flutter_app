@@ -1,0 +1,1 @@
+class Address { final String id; final String clientId; final String city; Address(this.id, this.clientId, this.city); }

@@ -1,0 +1,1 @@
+class Invoice { final String id; final String clientId; final String addressId; Invoice(this.id, this.clientId, this.addressId); }

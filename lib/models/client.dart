@@ -1,0 +1,1 @@
+class Client { final String id; final String name; Client(this.id, this.name); }

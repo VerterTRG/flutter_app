@@ -42,9 +42,3 @@ class TabConfig {
   static IconData icon(TabType type) => icons[type] ?? Icons.help;
   static String title(TabType type) => defaultTitles[type] ?? 'Tab';
 }
-
-// 3. Модель бизнес-сущностей (оставим тут для чистоты)
-class Client { final String id; final String name; Client(this.id, this.name); }
-class Address { final String id; final String clientId; final String city; Address(this.id, this.clientId, this.city); }
-class Product { final String id; final String name; final double price; Product(this.id, this.name, this.price); }
-class Invoice { final String id; final String clientId; final String addressId; Invoice(this.id, this.clientId, this.addressId); }

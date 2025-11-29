@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
-import 'models.dart';
-import 'screens.dart'; // Чтобы создавать виджеты
+import 'package:flutter_app/models/client.dart';
+import 'package:flutter_app/models/address.dart';
+import 'package:flutter_app/models/product.dart';
+import 'package:flutter_app/models/invoice.dart';
+import 'package:flutter_app/screens/addresses_screen.dart';
+import 'package:flutter_app/screens/clients_screen.dart';
+import 'package:flutter_app/screens/dashboard_screen.dart';
+import 'package:flutter_app/screens/invoices_screen.dart';
+import 'package:flutter_app/screens/product_screen.dart';
+import 'models/tab_config.dart'; 
 
 // Модель одной открытой вкладки
 class TabItem {
@@ -100,7 +108,7 @@ class AppState extends ChangeNotifier {
   void closeTab(int index) {
     // ЗАЩИТА: Не даем закрыть Dashboard (если вдруг UI позволит)
     if (tabs[index].id == TabType.dashboard.name) return;
-    
+
     tabs.removeAt(index);
     if (tabs.isEmpty) {
       activeTabIndex = -1;
