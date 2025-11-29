@@ -9,11 +9,12 @@ class AddressesState {
 
 class AddressesCubit extends Cubit<AddressesState> {
   AddressesCubit() : super(AddressesState([]));
-
-  void addAddress(String clientId, String city, String? zip) {
+  
+  String addAddress(String clientId, String city, String? zip) {
     final newAddress = Address(DateTime.now().millisecondsSinceEpoch.toString(), clientId, city, zip);
     final newList = List<Address>.from(state.addresses)..add(newAddress);
     emit(AddressesState(newList));
+    return newAddress.id;
   }
 
   Address? findById(String id) {

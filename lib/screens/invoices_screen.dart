@@ -64,7 +64,12 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                   icon: const Icon(Icons.add_location_alt),
                   onPressed: clientId == null ? null : () {
                     // ! ПЕРЕДАЕМ ID КЛИЕНТА В ФОРМУ СОЗДАНИЯ АДРЕСА
-                    final args = FormArguments({'clientId': clientId});
+                    final args = FormArguments({'clientId': clientId}, 
+                      onResult: (newAddressId) {
+                        // После создания нового адреса сразу его выбираем
+                        addressCtrl.selectedItem = newAddressId?.toString();
+                      }
+                    );
                     
                     context.read<NavigationCubit>().openTab(
                       TabType.createAddress, 

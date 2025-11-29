@@ -47,8 +47,10 @@ class _AddressesScreenState extends State<AddressesScreen> {
     final clientCtrl = _controllers['clientId'] as SelectionController<String>;
     final city = _controllers['city'] as TextEditingController;
     final zip = _controllers['zip'] as TextEditingController;           
-    // ! Переименовали state -> clientsState, чтобы не было конфликта имен внутри BlocBuilder
-    final clientsState = context.read<ClientsCubit>().state;
+    // ! ИСПРАВЛЕНИЕ: Используем watch вместо read.
+    // Теперь при добавлении клиента экран перестроится, список clients обновится,
+    // и SmartDropdown сможет найти и отобразить новый ID.
+    final clientsState = context.watch<ClientsCubit>().state;
     final clients = clientsState.clients.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList();
 
     // Fallback: если ничего не выбрано, выбираем первого (опционально)
@@ -69,7 +71,21 @@ class _AddressesScreenState extends State<AddressesScreen> {
         const SizedBox(width: 10),
         IconButton.filledTonal(
           icon: const Icon(Icons.person_add),
-          onPressed: () => context.read<NavigationCubit>().openTab(TabType.createClient, sourceTabId: widget.tabId),
+          // ! ИСПРАВЛЕНИЕ: Разрешаем создавать клиента всегда (убрали проверку на null)
+          // и не передаем текущий ID, так как создаем нового.
+          onPressed: () => context.read<NavigationCubit>().openTab(
+            TabType.createClient, 
+            sourceTabId: widget.tabId, 
+            args: FormArguments(
+              {}, // Пустые аргументы
+              onResult: (result) {
+                // При получении результата (ID нового клиента) обновляем контроллер
+                if (result is String) {
+                  clientCtrl.selectedItem = result;
+                }
+              }
+            )
+          ),
         )
       ]),
       const SizedBox(height: 10),
@@ -79,8 +95,22 @@ class _AddressesScreenState extends State<AddressesScreen> {
       const SizedBox(height: 10),
       
       FilledButton(onPressed: () { 
-        if (clientCtrl.selectedItem != null) {
-          context.read<AddressesCubit>().addAddress(clientCtrl.selectedItem!, city.text, zip.text);
+        if (clientCtrl.selectedItem == null) return;
+
+        final newAddressId = context.read<AddressesCubit>().addAddress(clientCtrl.selectedItem!, city.text, zip.text);
+
+        if (widget.args?.onResult != null) {
+          widget.args!.onResult!(newAddressId);
+          
+          // Опционально: Можно даже закрыть этот таб автоматически
+          final navCubit = context.read<NavigationCubit>();
+          final index = navCubit.state.tabs.indexWhere((t) => t.id == widget.tabId);
+          if (index != -1) {
+            navCubit.closeTab(index);
+          }
+
+          // Показываем уведомление
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Адрес "ID: $newAddressId" - ${city.text} создан для клиента "${clientsState.clients.firstWhere((c) => c.id == clientCtrl.selectedItem).name}"')));
         }
       }, child: const Text('Сохранить')),
       

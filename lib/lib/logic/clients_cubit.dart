@@ -15,13 +15,14 @@ class ClientsCubit extends Cubit<ClientsState> {
     Client('2', 'Петр Петров', email: 'petr@test.com'),
   ]));
 
-  void addClient(String name, String email) {
-    final newClient = Client(DateTime.now().millisecondsSinceEpoch.toString(), name, email: email);
+  String addClient(String name, String email) {
+    final newId = DateTime.now().millisecondsSinceEpoch.toString();
+    final newClient = Client(newId, name, email: email);
     
-    // Создаем НОВЫЙ список (immutability)
     final newList = List<Client>.from(state.clients)..add(newClient);
-    
     emit(ClientsState(newList));
+
+    return newId; // <--- ВОЗВРАЩАЕМ ID
   }
   
   // Метод поиска (для toCreateAddressArgs)

@@ -53,9 +53,30 @@ class _ClientsScreenState extends State<ClientsScreen> {
       const SizedBox(height: 10),
       FilledButton(
         onPressed: () { 
-          context.read<ClientsCubit>().addClient(nameCtrl.text, emailCtrl.text); 
-          // Очистка
+          // 1. Создаем клиента и ПОЛУЧАЕМ ЕГО ID
+          final newClientId = context.read<ClientsCubit>().addClient(
+            nameCtrl.text.trim(), 
+            emailCtrl.text.trim()
+          ); 
+          
+          // 2. Очищаем форму
           _controllers.forEach((_, c) => c.clear());
+
+          // 3. ! ТОЧЕЧНАЯ ОТПРАВКА: Если кто-то ждет ответа, сообщаем ему ID
+          if (widget.args?.onResult != null) {
+            widget.args!.onResult!(newClientId);
+            
+            // Опционально: Можно даже закрыть этот таб автоматически
+            // ! ИСПРАВЛЕНИЕ: tabId - это String, нельзя кастить к int. Ищем индекс.
+            final navCubit = context.read<NavigationCubit>();
+            final index = navCubit.state.tabs.indexWhere((t) => t.id == widget.tabId);
+            if (index != -1) {
+              navCubit.closeTab(index);
+            }
+          }
+          
+          // Показываем уведомление
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Клиент "ID: $newClientId" - ${nameCtrl.text} создан')));
         }, 
         child: const Text('Сохранить')
       ),
