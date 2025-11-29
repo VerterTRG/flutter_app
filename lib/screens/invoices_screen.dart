@@ -2,30 +2,87 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/models/tab_config.dart';
 import 'package:flutter_app/state.dart';
+import 'package:flutter_app/utils/common.dart';
+import 'package:flutter_app/widgets/components/smart_dropdown.dart';
 import 'package:provider/provider.dart';
 
+class InvoicesScreen extends StatefulWidget {
+  final String tabId;
+  const InvoicesScreen({super.key, required this.tabId}); // Инвойсам пока args не нужны
+  @override
+  State<InvoicesScreen> createState() => _InvoicesScreenState();
+}
 
-
-class InvoicesScreen extends StatefulWidget { final String tabId; const InvoicesScreen({super.key, required this.tabId}); @override State<InvoicesScreen> createState() => _InvoicesScreenState(); }
 class _InvoicesScreenState extends State<InvoicesScreen> {
-  String? _clientId; String? _addrId;
+  // Для фильтрации адресов нам все же нужно знать текущего клиента,
+  // поэтому слушаем его контроллер
+  final clientCtrl = SelectionController<String>();
+  final addressCtrl = SelectionController<String>();
+
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
-    final addresses = state.addresses.where((a) => a.clientId == _clientId).toList();
+
     return Padding(padding: const EdgeInsets.all(20), child: Column(children: [
-      DropdownButtonFormField<String>(value: _clientId, hint: const Text('Клиент'), items: state.clients.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(), onChanged: (v) => setState(() { _clientId = v; _addrId = null; })),
-      Row(children: [
-        Expanded(child: DropdownButtonFormField<String>(value: _addrId, hint: const Text('Адрес'), items: addresses.map((a) => DropdownMenuItem(value: a.id, child: Text(a.city))).toList(), onChanged: (v) => setState(() => _addrId = v))),
-        if (_clientId != null) 
-          IconButton(
-            icon: const Icon(Icons.add), 
-            // ! БЕЗ ХАРДКОДА: Создаем Адрес из Инвойса
-            onPressed: () => context.read<AppState>().openTab(TabType.createAddress, sourceTabId: widget.tabId)
-          )
-      ]),
-      ElevatedButton(onPressed: (_clientId != null && _addrId != null) ? () => context.read<AppState>().addInvoice(_clientId!, _addrId!) : null, child: const Text('Создать Инвойс')),
-      Expanded(child: ListView(children: state.invoices.map((i) => ListTile(title: Text('Инвойс #${i.id.substring(0,4)}'))).toList()))
+      // 1. ВЫБОР КЛИЕНТА
+      SmartDropdown<String>(
+        controller: clientCtrl,
+        label: 'Клиент',
+        items: state.clients.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+        // ! ВАЖНО: При смене клиента сбрасываем выбранный адрес
+        onChanged: (_) => addressCtrl.selectedItem = null,
+      ),
+      const SizedBox(height: 10),
+
+      // 2. ВЫБОР АДРЕСА (Зависимый)
+      // Используем ValueListenableBuilder чтобы перерисовывать ТОЛЬКО этот блок при смене клиента
+      ValueListenableBuilder<String?>(
+        valueListenable: clientCtrl,
+        builder: (context, clientId, _) {
+          // Фильтруем адреса
+          final availableAddresses = state.addresses.where((a) => a.clientId == clientId).toList();
+          
+          return Row(children: [
+            Expanded(
+              // ! ИСПРАВЛЕНИЕ: Используем SmartDropdown, он внутри проверяет наличие value в items
+              child: SmartDropdown<String>(
+                controller: addressCtrl,
+                label: 'Адрес доставки',
+                items: availableAddresses.map((a) => DropdownMenuItem(value: a.id, child: Text(a.city))).toList(),
+              ),
+            ),
+            const SizedBox(width: 10),
+            
+            // КНОПКА "ДОБАВИТЬ АДРЕС"
+            // Активна только если выбран клиент
+            IconButton.filledTonal(
+              icon: const Icon(Icons.add_location_alt),
+              onPressed: clientId == null ? null : () {
+                // ! ПЕРЕДАЕМ ID КЛИЕНТА В ФОРМУ СОЗДАНИЯ АДРЕСА
+                final args = FormArguments({'clientId': clientId});
+                
+                context.read<AppState>().openTab(
+                  TabType.createAddress, 
+                  sourceTabId: widget.tabId,
+                  args: args
+                );
+              },
+            )
+          ]);
+        }
+      ),
+      
+      const SizedBox(height: 20),
+      FilledButton(onPressed: () {
+        if (clientCtrl.selectedItem != null && addressCtrl.selectedItem != null) {
+          context.read<AppState>().addInvoice(clientCtrl.selectedItem!, addressCtrl.selectedItem!);
+        }
+      }, child: const Text('Создать Инвойс')),
+      
+      const Divider(height: 30),
+      Expanded(child: ListView(
+        children: state.invoices.map((i) => ListTile(title: Text('Invoice #${i.id}'))).toList()
+      ))
     ]));
   }
 }

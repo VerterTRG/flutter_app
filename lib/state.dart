@@ -8,6 +8,7 @@ import 'package:flutter_app/screens/clients_screen.dart';
 import 'package:flutter_app/screens/dashboard_screen.dart';
 import 'package:flutter_app/screens/invoices_screen.dart';
 import 'package:flutter_app/screens/product_screen.dart';
+import 'package:flutter_app/utils/common.dart';
 import 'models/tab_config.dart'; 
 
 // Модель одной открытой вкладки
@@ -28,7 +29,7 @@ class AppState extends ChangeNotifier {
   final List<Invoice> invoices = [];
 
   void addClient(String name) { clients.add(Client(DateTime.now().toString(), name)); notifyListeners(); }
-  void addAddress(String clientId, String city) { addresses.add(Address(DateTime.now().toString(), clientId, city)); notifyListeners(); }
+  void addAddress(String clientId, String city, String? zip) { addresses.add(Address(DateTime.now().toString(), clientId, city, zip)); notifyListeners(); }
   void addProduct(String name, double price) { products.add(Product(DateTime.now().toString(), name, price)); notifyListeners(); }
   void addInvoice(String clientId, String addressId) { invoices.add(Invoice(DateTime.now().toString(), clientId, addressId)); notifyListeners(); }
 
@@ -48,7 +49,7 @@ class AppState extends ChangeNotifier {
   // type: Тип вкладки
   // sourceTabId: ID вкладки, откуда нажали (для предотвращения дублей создания)
   // entity: Объект данных (если открываем конкретного клиента для просмотра)
-  void openTab(TabType type, {String? sourceTabId, Object? entity}) {
+  void openTab(TabType type, {String? sourceTabId, Object? entity, FormArguments? args}) {
     
     // 1. ГЕНЕРАЦИЯ ID
     // Если это список (Dashboard, Clients) -> ID фиксированный (напр. "clients")
@@ -77,21 +78,26 @@ class AppState extends ChangeNotifier {
     }
 
     // 4. СОЗДАНИЕ ЭКРАНА
-    Widget screen;
+Widget screen;
     switch (type) {
       case TabType.dashboard: screen = DashboardScreen(tabId: id); break;
       case TabType.clients: screen = ClientsScreen(tabId: id); break;
-      case TabType.addresses: screen = AddressesScreen(tabId: id); break;
       case TabType.products: screen = ProductsScreen(tabId: id); break;
       case TabType.invoices: screen = InvoicesScreen(tabId: id); break;
       
-      case TabType.createClient: screen = ClientsScreen(tabId: id); break; // Переиспользуем экран для создания
-      case TabType.createAddress: screen = AddressesScreen(tabId: id); break;
-      
-      case TabType.clientDetails: 
-        // Здесь мы бы открыли экран деталей, но пока откроем список для примера
-        screen = ClientsScreen(tabId: id); 
-        break; 
+      // ! ТЕПЕРЬ ВСЕ ФОРМЫ ПОЛУЧАЮТ ARGS ЕДИНООБРАЗНО
+      case TabType.createClient: 
+      case TabType.clientDetails:
+        screen = ClientsScreen(tabId: id, args: args); 
+        break;
+
+      case TabType.addresses: // Список адресов
+        screen = AddressesScreen(tabId: id); 
+        break;
+
+      case TabType.createAddress: // Форма создания
+        screen = AddressesScreen(tabId: id, args: args); 
+        break;
     }
 
     // 5. ДОБАВЛЕНИЕ

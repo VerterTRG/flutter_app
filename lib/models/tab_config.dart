@@ -26,16 +26,15 @@ class TabConfig {
     TabType.createAddress: Icons.add_location_alt,
     TabType.clientDetails: Icons.person,
   };
-
   static final Map<TabType, String> defaultTitles = {
     TabType.dashboard: 'Сводка',
     TabType.clients: 'Клиенты',
+    TabType.clientDetails: 'Клиент',
+    TabType.createClient: 'Новый клиент',
     TabType.addresses: 'Адреса',
+    TabType.createAddress: 'Новый адрес',
     TabType.products: 'Товары',
     TabType.invoices: 'Инвойсы',
-    TabType.createClient: 'Новый клиент',
-    TabType.createAddress: 'Новый адрес',
-    TabType.clientDetails: 'Клиент', // Будет перезаписано именем
   };
 
   // Хелпер для получения данных
