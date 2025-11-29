@@ -3,6 +3,7 @@ import 'package:flutter_app/models/client.dart';
 import 'package:flutter_app/models/address.dart';
 import 'package:flutter_app/models/product.dart';
 import 'package:flutter_app/models/invoice.dart';
+import 'package:flutter_app/models/tab_item.dart';
 import 'package:flutter_app/screens/addresses_screen.dart';
 import 'package:flutter_app/screens/clients_screen.dart';
 import 'package:flutter_app/screens/dashboard_screen.dart';
@@ -10,16 +11,6 @@ import 'package:flutter_app/screens/invoices_screen.dart';
 import 'package:flutter_app/screens/product_screen.dart';
 import 'package:flutter_app/utils/common.dart';
 import 'models/tab_config.dart'; 
-
-// Модель одной открытой вкладки
-class TabItem {
-  final String id;
-  final String title;
-  final Widget screen;
-  final IconData icon;
-
-  TabItem({required this.id, required this.title, required this.screen, required this.icon});
-}
 
 class AppState extends ChangeNotifier {
   // === ДАННЫЕ ===

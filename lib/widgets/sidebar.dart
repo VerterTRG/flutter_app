@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/lib/logic/navigation_cubit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../models/tab_config.dart';
-import '../state.dart';
 
 class SideBar extends StatelessWidget {
   const SideBar({
     super.key,
-    required this.state,
   });
 
-  final AppState state;
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +18,13 @@ class SideBar extends StatelessWidget {
         NavigationRail(
           selectedIndex: null,
           onDestinationSelected: (index) {
+            final nav = context.read<NavigationCubit>();
             switch (index) {
-              case 0: state.openTab(TabType.dashboard); break;
-              case 1: state.openTab(TabType.clients); break;
-              case 2: state.openTab(TabType.addresses); break;
-              case 3: state.openTab(TabType.products); break;
-              case 4: state.openTab(TabType.invoices); break;
+              case 0: nav.openTab(TabType.dashboard); break;
+              case 1: nav.openTab(TabType.clients); break;
+              case 2: nav.openTab(TabType.addresses); break;
+              case 3: nav.openTab(TabType.products); break;
+              case 4: nav.openTab(TabType.invoices); break;
             }
           },
           labelType: NavigationRailLabelType.all,

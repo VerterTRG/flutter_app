@@ -1,7 +1,8 @@
 // --- PRODUCTS ---
 import 'package:flutter/material.dart';
-import 'package:flutter_app/state.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_app/lib/logic/products_cubit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 
 class ProductsScreen extends StatelessWidget {
   final String tabId;
@@ -9,11 +10,16 @@ class ProductsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final nameCtrl = TextEditingController(); final priceCtrl = TextEditingController();
+    final cubit = context.read<ProductsCubit>();
     return Padding(padding: const EdgeInsets.all(20), child: Column(children: [
       TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Название')),
       TextField(controller: priceCtrl, decoration: const InputDecoration(labelText: 'Цена'), keyboardType: TextInputType.number),
-      ElevatedButton(onPressed: () => context.read<AppState>().addProduct(nameCtrl.text, double.tryParse(priceCtrl.text) ?? 0), child: const Text('Добавить')),
-      Expanded(child: ListView(children: context.watch<AppState>().products.map((p) => ListTile(title: Text(p.name), trailing: Text('\$${p.price}'))).toList()))
+      ElevatedButton(onPressed: () => cubit.addProduct(nameCtrl.text, double.tryParse(priceCtrl.text) ?? 0), child: const Text('Добавить')),
+      Expanded(child: BlocBuilder<ProductsCubit, ProductsState>(
+        builder: (context, state) {
+          return ListView(children: state.products.map((p) => ListTile(title: Text(p.name), trailing: Text('\$${p.price}'))).toList());
+        }
+      ))
     ]));
   }
 }

@@ -1,10 +1,13 @@
 // --- INVOICES ---
 import 'package:flutter/material.dart';
+import 'package:flutter_app/lib/logic/addresses_cubit.dart';
+import 'package:flutter_app/lib/logic/clients_cubit.dart';
+import 'package:flutter_app/lib/logic/invoices_cubit.dart';
+import 'package:flutter_app/lib/logic/navigation_cubit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_app/models/tab_config.dart';
-import 'package:flutter_app/state.dart';
 import 'package:flutter_app/utils/common.dart';
 import 'package:flutter_app/widgets/components/smart_dropdown.dart';
-import 'package:provider/provider.dart';
 
 class InvoicesScreen extends StatefulWidget {
   final String tabId;
@@ -21,7 +24,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
+    final state = context.read<ClientsCubit>().state;
 
     return Padding(padding: const EdgeInsets.all(20), child: Column(children: [
       // 1. ВЫБОР КЛИЕНТА
@@ -36,52 +39,60 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
 
       // 2. ВЫБОР АДРЕСА (Зависимый)
       // Используем ValueListenableBuilder чтобы перерисовывать ТОЛЬКО этот блок при смене клиента
-      ValueListenableBuilder<String?>(
-        valueListenable: clientCtrl,
-        builder: (context, clientId, _) {
-          // Фильтруем адреса
-          final availableAddresses = state.addresses.where((a) => a.clientId == clientId).toList();
-          
-          return Row(children: [
-            Expanded(
-              // ! ИСПРАВЛЕНИЕ: Используем SmartDropdown, он внутри проверяет наличие value в items
-              child: SmartDropdown<String>(
-                controller: addressCtrl,
-                label: 'Адрес доставки',
-                items: availableAddresses.map((a) => DropdownMenuItem(value: a.id, child: Text(a.city))).toList(),
-              ),
-            ),
-            const SizedBox(width: 10),
-            
-            // КНОПКА "ДОБАВИТЬ АДРЕС"
-            // Активна только если выбран клиент
-            IconButton.filledTonal(
-              icon: const Icon(Icons.add_location_alt),
-              onPressed: clientId == null ? null : () {
-                // ! ПЕРЕДАЕМ ID КЛИЕНТА В ФОРМУ СОЗДАНИЯ АДРЕСА
-                final args = FormArguments({'clientId': clientId});
+      BlocBuilder<AddressesCubit, AddressesState>(
+        builder: (context, addressesState) {
+          return ValueListenableBuilder<String?>(
+            valueListenable: clientCtrl,
+            builder: (context, clientId, _) {
+              // Фильтруем адреса
+              final availableAddresses = addressesState.addresses.where((a) => a.clientId == clientId).toList();
+              
+              return Row(children: [
+                Expanded(
+                  // ! ИСПРАВЛЕНИЕ: Используем SmartDropdown, он внутри проверяет наличие value в items
+                  child: SmartDropdown<String>(
+                    controller: addressCtrl,
+                    label: 'Адрес доставки',
+                    items: availableAddresses.map((a) => DropdownMenuItem(value: a.id, child: Text(a.city))).toList(),
+                  ),
+                ),
+                const SizedBox(width: 10),
                 
-                context.read<AppState>().openTab(
-                  TabType.createAddress, 
-                  sourceTabId: widget.tabId,
-                  args: args
-                );
-              },
-            )
-          ]);
+                // КНОПКА "ДОБАВИТЬ АДРЕС"
+                // Активна только если выбран клиент
+                IconButton.filledTonal(
+                  icon: const Icon(Icons.add_location_alt),
+                  onPressed: clientId == null ? null : () {
+                    // ! ПЕРЕДАЕМ ID КЛИЕНТА В ФОРМУ СОЗДАНИЯ АДРЕСА
+                    final args = FormArguments({'clientId': clientId});
+                    
+                    context.read<NavigationCubit>().openTab(
+                      TabType.createAddress, 
+                      sourceTabId: widget.tabId,
+                      args: args
+                    );
+                  },
+                )
+              ]);
+            }
+          );
         }
       ),
       
       const SizedBox(height: 20),
       FilledButton(onPressed: () {
         if (clientCtrl.selectedItem != null && addressCtrl.selectedItem != null) {
-          context.read<AppState>().addInvoice(clientCtrl.selectedItem!, addressCtrl.selectedItem!);
+          context.read<InvoicesCubit>().addInvoice(clientCtrl.selectedItem!, addressCtrl.selectedItem!);
         }
       }, child: const Text('Создать Инвойс')),
       
       const Divider(height: 30),
-      Expanded(child: ListView(
-        children: state.invoices.map((i) => ListTile(title: Text('Invoice #${i.id}'))).toList()
+      Expanded(child: BlocBuilder<InvoicesCubit, InvoicesState>(
+        builder: (context, state) {
+          return ListView(
+            children: state.invoices.map((i) => ListTile(title: Text('Invoice #${i.id}'))).toList()
+          );
+        }
       ))
     ]));
   }

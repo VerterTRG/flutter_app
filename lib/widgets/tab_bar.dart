@@ -1,24 +1,22 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_app/lib/logic/navigation_cubit.dart';
 import '../models/tab_config.dart';
-import '../state.dart';
-import '../theme.dart'; // Добавляем импорт для доступа к primaryBase
+import '../theme.dart';
 
 // --- КОНСТАНТЫ РАЗМЕРОВ ---
 const double kMinTabWidth = 120.0; // Минимальная ширина (включается скролл)
 const double kMaxTabWidth = 250.0; // Максимальная ширина (если места много)
 const double kTabBarHeight = 40.0; // Высота шапки
 
-
 class AppTabBar extends StatefulWidget {
   const AppTabBar({
     super.key,
-    required this.colors,
     required this.state,
   });
 
-  final ColorScheme colors;
-  final AppState state;
+  final NavigationState state;
 
   @override
   State<AppTabBar> createState() => _AppTabBarState();
@@ -40,7 +38,7 @@ class _AppTabBarState extends State<AppTabBar> {
 
     return Container(
       height: kTabBarHeight,
-      color: widget.colors.surfaceContainer,
+      color: colors.surfaceContainer, // Исправлено: widget.colors -> colors
       width: double.infinity,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,7 +83,8 @@ class _AppTabBarState extends State<AppTabBar> {
                         final isPinned = tab.id == TabType.dashboard.name;
 
                         return InkWell(
-                          onTap: () => widget.state.setActiveTab(index),
+                          // Исправлено: вызываем метод Cubit через context.read
+                          onTap: () => context.read<NavigationCubit>().setActiveTab(index),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.easeOut,
@@ -115,7 +114,7 @@ class _AppTabBarState extends State<AppTabBar> {
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-                                      color: isActive ? widget.colors.onSurface : widget.colors.onSurfaceVariant,
+                                      color: isActive ? colors.onSurface : colors.onSurfaceVariant,
                                     ),
                                   ),
                                 ),
@@ -124,8 +123,9 @@ class _AppTabBarState extends State<AppTabBar> {
                                   MouseRegion(
                                     cursor: SystemMouseCursors.click,
                                     child: GestureDetector(
-                                      onTap: () => widget.state.closeTab(index),
-                                      child: Icon(Icons.close, size: 16, color: widget.colors.onSurfaceVariant),
+                                      // Исправлено: вызываем метод Cubit через context.read
+                                      onTap: () => context.read<NavigationCubit>().closeTab(index),
+                                      child: Icon(Icons.close, size: 16, color: colors.onSurfaceVariant),
                                     ),
                                   )
                                 ],
