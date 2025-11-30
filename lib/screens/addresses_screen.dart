@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/lib/logic/clients_cubit.dart';
-import 'package:flutter_app/lib/logic/navigation_cubit.dart';
-import 'package:flutter_app/models/tab_config.dart';
-import 'package:flutter_app/lib/logic/addresses_cubit.dart';
+import 'package:flutter_app/logic/clients_cubit.dart';
+import 'package:flutter_app/logic/navigation_cubit.dart';
+import 'package:flutter_app/logic/addresses_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_app/utils/common.dart';
 import 'package:flutter_app/widgets/components/smart_dropdown.dart';
-
+import 'package:flutter_app/core/routes.dart';
 
 // --- ADDRESSES SCREEN ---
 class AddressesScreen extends StatefulWidget {
@@ -74,7 +73,7 @@ class _AddressesScreenState extends State<AddressesScreen> {
           // ! ИСПРАВЛЕНИЕ: Разрешаем создавать клиента всегда (убрали проверку на null)
           // и не передаем текущий ID, так как создаем нового.
           onPressed: () => context.read<NavigationCubit>().openTab(
-            TabType.createClient, 
+            Routes.createClient, 
             sourceTabId: widget.tabId, 
             args: FormArguments(
               {}, // Пустые аргументы
@@ -99,6 +98,10 @@ class _AddressesScreenState extends State<AddressesScreen> {
 
         final newAddressId = context.read<AddressesCubit>().addAddress(clientCtrl.selectedItem!, city.text, zip.text);
 
+        final createdCity = city.text.trim();
+        // 2. Очищаем форму
+        _controllers.forEach((_, c) => c.clear() ?? {});
+
         if (widget.args?.onResult != null) {
           widget.args!.onResult!(newAddressId);
           
@@ -110,7 +113,7 @@ class _AddressesScreenState extends State<AddressesScreen> {
           }
 
           // Показываем уведомление
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Адрес "ID: $newAddressId" - ${city.text} создан для клиента "${clientsState.clients.firstWhere((c) => c.id == clientCtrl.selectedItem).name}"')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Адрес "ID: $newAddressId" - $createdCity создан для клиента "${clientsState.clients.firstWhere((c) => c.id == clientCtrl.selectedItem).name}"')));
         }
       }, child: const Text('Сохранить')),
       

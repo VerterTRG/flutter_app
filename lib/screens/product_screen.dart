@@ -1,12 +1,13 @@
 // --- PRODUCTS ---
 import 'package:flutter/material.dart';
-import 'package:flutter_app/lib/logic/products_cubit.dart';
+import 'package:flutter_app/logic/products_cubit.dart';
+import 'package:flutter_app/utils/common.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 
 class ProductsScreen extends StatelessWidget {
   final String tabId;
-  const ProductsScreen({super.key, required this.tabId});
+  const ProductsScreen({super.key, required this.tabId, FormArguments? args});
   @override
   Widget build(BuildContext context) {
     final nameCtrl = TextEditingController(); final priceCtrl = TextEditingController();

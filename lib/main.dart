@@ -1,22 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/lib/logic/addresses_cubit.dart';
-import 'package:flutter_app/lib/logic/clients_cubit.dart';
-import 'package:flutter_app/lib/logic/invoices_cubit.dart';
-import 'package:flutter_app/lib/logic/products_cubit.dart';
-import 'package:flutter_app/models/client.dart';
+import 'package:flutter_app/core/module_registry.dart';
+import 'package:flutter_app/logic/addresses_cubit.dart';
+import 'package:flutter_app/logic/clients_cubit.dart';
+import 'package:flutter_app/logic/invoices_cubit.dart';
+import 'package:flutter_app/logic/products_cubit.dart';
+import 'package:flutter_app/modules/addresses/addresses_module.dart';
+import 'package:flutter_app/modules/addresses/create_address_module.dart';
+import 'package:flutter_app/modules/clients/clients_module.dart';
+import 'package:flutter_app/modules/clients/create_client_module.dart';
+import 'package:flutter_app/modules/dashboard_module.dart';
+import 'package:flutter_app/modules/invoices_module.dart';
+import 'package:flutter_app/modules/products_module.dart';
 import "package:flutter_bloc/flutter_bloc.dart";
-// import 'package:provider/provider.dart';
-import 'state.dart';
 import 'widgets/tab_bar.dart';
 import 'widgets/sidebar.dart';
 import 'theme.dart';
-import "lib/logic/navigation_cubit.dart";
+import "logic/navigation_cubit.dart";
 
 // --- КОНСТАНТЫ РАЗМЕРОВ ---
 // Константы перенесены в widgets/tab_bar.dart
 
 void main() {
   // runApp(ChangeNotifierProvider(create: (_) => AppState(), child: const MyApp()));
+  // 1. РЕГИСТРАЦИЯ МОДУЛЕЙ
+  // Если завтра добавишь "Склад", просто допиши одну строчку тут.
+  ModuleRegistry.register(DashboardModule());
+  ModuleRegistry.register(ClientsModule());
+  ModuleRegistry.register(AddressesModule());
+  ModuleRegistry.register(ProductsModule());
+  ModuleRegistry.register(InvoicesModule());
+  ModuleRegistry.register(CreateClientModule());
+  ModuleRegistry.register(CreateAddressModule());
+
   runApp(const MyApp());
 }
 
@@ -26,7 +41,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => NavigationCubit()),
+        BlocProvider(create: (_) => NavigationCubit()..init()),
         BlocProvider(create: (_) => ClientsCubit()),
         BlocProvider(create: (_) => AddressesCubit()),
         BlocProvider(create: (_) => ProductsCubit()),

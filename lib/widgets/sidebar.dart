@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/lib/logic/navigation_cubit.dart';
+import 'package:flutter_app/core/module_registry.dart';
+import 'package:flutter_app/logic/navigation_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../models/tab_config.dart';
 
 class SideBar extends StatelessWidget {
   const SideBar({
@@ -12,29 +12,30 @@ class SideBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-
+    // 1. ПОЛУЧАЕМ СПИСОК ПУНКТОВ МЕНЮ ИЗ РЕЕСТРА
+    // Порядок зависит от того, как ты делал register() в main()
+    final menuModules = ModuleRegistry.menuItems;
+    
     return Row(
       children: [
         NavigationRail(
           selectedIndex: null,
-          onDestinationSelected: (index) {
-            final nav = context.read<NavigationCubit>();
-            switch (index) {
-              case 0: nav.openTab(TabType.dashboard); break;
-              case 1: nav.openTab(TabType.clients); break;
-              case 2: nav.openTab(TabType.addresses); break;
-              case 3: nav.openTab(TabType.products); break;
-              case 4: nav.openTab(TabType.invoices); break;
-            }
-          },
+          // 3. УМНАЯ ОБРАБОТКА НАЖАТИЯ
+            onDestinationSelected: (index) {
+              // Нам больше не нужен switch!
+              // Мы просто берем модуль по индексу из списка
+              final selectedModule = menuModules[index];
+              
+              // И говорим кубиту открыть этот тип
+              context.read<NavigationCubit>().openTab(selectedModule.moduleId);
+            },
           labelType: NavigationRailLabelType.all,
-          destinations: [
-            NavigationRailDestination(icon: Icon(TabConfig.icon(TabType.dashboard)), label: Text(TabConfig.title(TabType.dashboard))),
-            NavigationRailDestination(icon: Icon(TabConfig.icon(TabType.clients)), label: Text(TabConfig.title(TabType.clients))),
-            NavigationRailDestination(icon: Icon(TabConfig.icon(TabType.addresses)), label: Text(TabConfig.title(TabType.addresses))),
-            NavigationRailDestination(icon: Icon(TabConfig.icon(TabType.products)), label: Text(TabConfig.title(TabType.products))),
-            NavigationRailDestination(icon: Icon(TabConfig.icon(TabType.invoices)), label: Text(TabConfig.title(TabType.invoices))),
-          ],
+          destinations: menuModules.map((module) {
+              return NavigationRailDestination(
+                icon: Icon(module.icon), // Берем иконку прямо из модуля
+                label: Text(module.title), // Берем название прямо из модуля
+              );
+            }).toList(),
         ),
         VerticalDivider(thickness: 0, width: 1, color: colors.secondary),
       ],

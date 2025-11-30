@@ -1,9 +1,9 @@
 // --- CLIENTS ---
 import 'package:flutter/material.dart';
-import 'package:flutter_app/lib/logic/clients_cubit.dart';
-import 'package:flutter_app/lib/logic/navigation_cubit.dart';
+import 'package:flutter_app/core/routes.dart';
+import 'package:flutter_app/logic/clients_cubit.dart';
+import 'package:flutter_app/logic/navigation_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_app/models/tab_config.dart';
 import 'package:flutter_app/utils/common.dart';
 
 class ClientsScreen extends StatefulWidget {
@@ -59,6 +59,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
             emailCtrl.text.trim()
           ); 
           
+          final createdName = nameCtrl.text.trim();
           // 2. Очищаем форму
           _controllers.forEach((_, c) => c.clear());
 
@@ -76,7 +77,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
           }
           
           // Показываем уведомление
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Клиент "ID: $newClientId" - ${nameCtrl.text} создан')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Клиент "ID: $newClientId" - $createdName создан')));
         }, 
         child: const Text('Сохранить')
       ),
@@ -94,7 +95,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 onPressed: () {
                   // ! КОПИРОВАНИЕ ЧЕРЕЗ МОДЕЛЬ
                   context.read<NavigationCubit>().openTab(
-                    TabType.createClient, 
+                    Routes.createClient, 
                     sourceTabId: widget.tabId,
                     args: c.toFormArgs()
                   );

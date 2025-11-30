@@ -1,17 +1,17 @@
 // --- INVOICES ---
 import 'package:flutter/material.dart';
-import 'package:flutter_app/lib/logic/addresses_cubit.dart';
-import 'package:flutter_app/lib/logic/clients_cubit.dart';
-import 'package:flutter_app/lib/logic/invoices_cubit.dart';
-import 'package:flutter_app/lib/logic/navigation_cubit.dart';
+import 'package:flutter_app/logic/addresses_cubit.dart';
+import 'package:flutter_app/logic/clients_cubit.dart';
+import 'package:flutter_app/logic/invoices_cubit.dart';
+import 'package:flutter_app/logic/navigation_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_app/models/tab_config.dart';
+import 'package:flutter_app/core/routes.dart';
 import 'package:flutter_app/utils/common.dart';
 import 'package:flutter_app/widgets/components/smart_dropdown.dart';
 
 class InvoicesScreen extends StatefulWidget {
   final String tabId;
-  const InvoicesScreen({super.key, required this.tabId}); // Инвойсам пока args не нужны
+  const InvoicesScreen({super.key, required this.tabId, FormArguments? args}); // Инвойсам пока args не нужны
   @override
   State<InvoicesScreen> createState() => _InvoicesScreenState();
 }
@@ -72,7 +72,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                     );
                     
                     context.read<NavigationCubit>().openTab(
-                      TabType.createAddress, 
+                      Routes.createAddress, 
                       sourceTabId: widget.tabId,
                       args: args
                     );

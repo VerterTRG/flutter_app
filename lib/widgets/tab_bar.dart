@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_app/lib/logic/navigation_cubit.dart';
+import 'package:flutter_app/logic/navigation_cubit.dart';
 import '../models/tab_config.dart';
 import '../theme.dart';
 
