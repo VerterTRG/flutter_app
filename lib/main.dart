@@ -4,13 +4,11 @@ import 'package:flutter_app/logic/addresses_cubit.dart';
 import 'package:flutter_app/logic/clients_cubit.dart';
 import 'package:flutter_app/logic/invoices_cubit.dart';
 import 'package:flutter_app/logic/products_cubit.dart';
-import 'package:flutter_app/modules/addresses/addresses_module.dart';
-import 'package:flutter_app/modules/addresses/create_address_module.dart';
-import 'package:flutter_app/modules/clients/clients_module.dart';
-import 'package:flutter_app/modules/clients/create_client_module.dart';
-import 'package:flutter_app/modules/dashboard_module.dart';
-import 'package:flutter_app/modules/invoices_module.dart';
-import 'package:flutter_app/modules/products_module.dart';
+import 'package:flutter_app/modules/addresses/module.dart';
+import 'package:flutter_app/modules/clients/module.dart';
+import 'package:flutter_app/modules/dashboard/module.dart';
+import 'package:flutter_app/modules/invoices/module.dart';
+import 'package:flutter_app/modules/products/module.dart';
 import "package:flutter_bloc/flutter_bloc.dart";
 import 'widgets/tab_bar.dart';
 import 'widgets/sidebar.dart';
@@ -24,13 +22,11 @@ void main() {
   // runApp(ChangeNotifierProvider(create: (_) => AppState(), child: const MyApp()));
   // 1. РЕГИСТРАЦИЯ МОДУЛЕЙ
   // Если завтра добавишь "Склад", просто допиши одну строчку тут.
-  ModuleRegistry.register(DashboardModule());
-  ModuleRegistry.register(ClientsModule());
-  ModuleRegistry.register(AddressesModule());
-  ModuleRegistry.register(ProductsModule());
-  ModuleRegistry.register(InvoicesModule());
-  ModuleRegistry.register(CreateClientModule());
-  ModuleRegistry.register(CreateAddressModule());
+  AppModulesManager.register(Dashboard());
+  AppModulesManager.register(Clients());
+  AppModulesManager.register(Addresses());
+  AppModulesManager.register(Products());
+  AppModulesManager.register(Invoices());
 
   runApp(const MyApp());
 }

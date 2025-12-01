@@ -4,11 +4,11 @@ import 'package:flutter_app/models/address.dart';
 import 'package:flutter_app/models/product.dart';
 import 'package:flutter_app/models/invoice.dart';
 import 'package:flutter_app/models/tab_item.dart';
-import 'package:flutter_app/screens/addresses_screen.dart';
-import 'package:flutter_app/screens/clients_screen.dart';
-import 'package:flutter_app/screens/dashboard_screen.dart';
-import 'package:flutter_app/screens/invoices_screen.dart';
-import 'package:flutter_app/screens/product_screen.dart';
+import 'package:flutter_app/modules/addresses/screens/addresses_screen.dart';
+import 'package:flutter_app/modules/clients/screens/clients_screen.dart';
+import 'package:flutter_app/modules/dashboard/screens/dashboard_screen.dart';
+import 'package:flutter_app/modules/invoices/screens/invoices_screen.dart';
+import 'package:flutter_app/modules/products/screens/product_screen.dart';
 import 'package:flutter_app/utils/common.dart';
 import 'models/tab_config.dart'; 
 

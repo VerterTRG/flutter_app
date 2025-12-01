@@ -7,6 +7,11 @@ class SelectionController<T> extends ValueNotifier<T?> {
   // Удобный геттер/сеттер
   T? get selectedItem => value;
   set selectedItem(T? newItem) => value = newItem;
+
+  /// Сбрасывает выбор — требуется виджетам, которые вызывают .clear()
+  void clear() {
+    selectedItem = null;
+  }
 }
 
 // 2. УМНЫЙ ДРОПДАУН (Сам слушает контроллер, не нужен setState в родителе)

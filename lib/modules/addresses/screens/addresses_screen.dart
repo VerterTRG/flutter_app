@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/logic/clients_cubit.dart';
 import 'package:flutter_app/logic/navigation_cubit.dart';
 import 'package:flutter_app/logic/addresses_cubit.dart';
+import 'package:flutter_app/modules/clients/module.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_app/utils/common.dart';
 import 'package:flutter_app/widgets/components/smart_dropdown.dart';
-import 'package:flutter_app/core/routes.dart';
 
 // --- ADDRESSES SCREEN ---
 class AddressesScreen extends StatefulWidget {
@@ -41,6 +41,23 @@ class _AddressesScreenState extends State<AddressesScreen> {
     });
   }
 
+  void _openCreateClientTab() {
+    final clientCtrl = _controllers['clientId'] as SelectionController<String>;
+    
+    final form = Clients().forms.create;
+
+    form.openForm(context, sourceTabId: widget.tabId, args: FormArguments(
+        {}, // Пустые аргументы
+        onResult: (result) {
+          // При получении результата (ID нового клиента) обновляем контроллер
+          if (result is String) {
+            clientCtrl.selectedItem = result;
+          }
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final clientCtrl = _controllers['clientId'] as SelectionController<String>;
@@ -72,19 +89,7 @@ class _AddressesScreenState extends State<AddressesScreen> {
           icon: const Icon(Icons.person_add),
           // ! ИСПРАВЛЕНИЕ: Разрешаем создавать клиента всегда (убрали проверку на null)
           // и не передаем текущий ID, так как создаем нового.
-          onPressed: () => context.read<NavigationCubit>().openTab(
-            Routes.createClient, 
-            sourceTabId: widget.tabId, 
-            args: FormArguments(
-              {}, // Пустые аргументы
-              onResult: (result) {
-                // При получении результата (ID нового клиента) обновляем контроллер
-                if (result is String) {
-                  clientCtrl.selectedItem = result;
-                }
-              }
-            )
-          ),
+          onPressed: _openCreateClientTab,
         )
       ]),
       const SizedBox(height: 10),

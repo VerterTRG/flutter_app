@@ -1,6 +1,6 @@
 import 'package:flutter_app/core/module_registry.dart';
 import 'package:flutter_app/models/tab_item.dart';
-import 'package:flutter_app/modules/dashboard_module.dart';
+import 'package:flutter_app/modules/dashboard/routes.dart';
 import 'package:flutter_app/utils/common.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
@@ -33,58 +33,62 @@ class NavigationCubit extends Cubit<NavigationState> {
 
   /// Метод инициализации (вызываем в main после регистрации модулей)
   void init() {
-    openTab(DashboardModule().moduleId);
+    openTab(DashboardRoutes.dashboard);
   }
 
-  void openTab(String moduleId, {String? sourceTabId, FormArguments? args}) {
-    // 1. Ищем модуль, ответственный за этот тип таба
-    final module = ModuleRegistry.get(moduleId);
+  void openTab(String routeId, {String? sourceTabId, FormArguments? args}) {
     
-    if (module == null) {
-      debugPrint('🛑 ОШИБКА: Модуль для типа $moduleId не зарегистрирован!');
-      return;
-    }
-
-    // 2. Генерация ID (Логика унифицирована)
-    String tabId = moduleId;
+    // 1. ЛОГИКА ФОРМИРОВАНИЯ ID (Твой вариант)
+    String tabId = routeId;
     
-    // Если это "создание" или "детали" - ID должен быть уникальным
-    if (moduleId.startsWith('create') || sourceTabId != null) {
-       // Пример: createClient_from_menu_173293023
-       final timestamp = DateTime.now().millisecondsSinceEpoch;
-       tabId = '${moduleId}_from_${sourceTabId ?? "root"}_$timestamp';
-    } 
-    
-    // Если передан конкретный ID объекта (для просмотра деталей)
+    // Пытаемся найти ID конкретного объекта (для редактирования)
     final entityId = args?.getValue<String>('id');
-    if (entityId != null) {
-      tabId = '${moduleId}_$entityId';
-    }
 
-    // 3. Проверка на дубликаты (Если таб уже открыт - переключаемся)
+    if (entityId != null) {
+      // Приоритет 1: Уникальность по Сущности
+      // Пример: clients/details/55
+      tabId = '$routeId/$entityId';
+      
+    } else if (sourceTabId != null) {
+      // Приоритет 2: Уникальность по Источнику (обычно для создания)
+      // Пример: clients/create?from=invoices_tab_1
+      tabId = '$routeId?from=$sourceTabId';
+    }
+    // Приоритет 3 (иначе): Глобальный синглтон
+    // Пример: clients/list
+
+    // 2. Проверяем, не открыт ли уже этот таб
     final existingIndex = state.tabs.indexWhere((t) => t.id == tabId);
     if (existingIndex != -1) {
       emit(state.copyWith(activeTabIndex: existingIndex));
       return;
     }
 
-    // 4. Формирование заголовка
-    // Берем дефолтный из модуля, но если в аргументах есть имя (для деталей) - берем его
-    String title = module.title;
-    final nameArg = args?.getValue<String>('name');
-    if (nameArg != null) {
-       title = nameArg;
+    // 3. ! ГЛАВНОЕ ИЗМЕНЕНИЕ: Строим экран через Реестр по Маршруту
+    // Реестр сам найдет нужный модуль и нужную функцию в subRoutes
+    final screen = AppModulesManager.buildScreen(routeId, tabId, args);
+
+    if (screen == null) {
+      debugPrint('🛑 ОШИБКА: Маршрут "$routeId" не найден ни в одном модуле!');
+      return;
     }
 
-    // 5. Создание экрана (Делегируем модулю!)
-    final screen = module.buildScreen(tabId, args);
+    // 4. Получаем метаданные для таба
+    // Получаем родителя и конфиг конкретного маршрута
+    final parentModule = AppModulesManager.getModuleByRoute(routeId);
+    final routeConfig = AppModulesManager.getRouteConfig(routeId);
+    
+    // Иконка: либо из конфигурации маршрута, либо из модуля, либо дефолтная
+    final icon = routeConfig?.icon ?? parentModule?.icon ?? Icons.extension;
+    // Заголовок: либо из аргументов, либо дефолтный из модуля, либо сам ID
+    String title = args?.getValue<String>('title') ?? routeConfig?.title ?? parentModule?.title ?? 'Tab';
 
-    // 6. Обновление состояния
+    // 5. Добавляем таб
     final currentTabs = List<TabItem>.from(state.tabs);
     currentTabs.add(TabItem(
       id: tabId, 
       title: title, 
-      icon: module.icon, 
+      icon: icon,
       screen: screen
     ));
 

@@ -1,8 +1,8 @@
 // --- CLIENTS ---
 import 'package:flutter/material.dart';
-import 'package:flutter_app/core/routes.dart';
 import 'package:flutter_app/logic/clients_cubit.dart';
 import 'package:flutter_app/logic/navigation_cubit.dart';
+import 'package:flutter_app/modules/clients/module.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_app/utils/common.dart';
 
@@ -94,8 +94,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 tooltip: 'Копировать',
                 onPressed: () {
                   // ! КОПИРОВАНИЕ ЧЕРЕЗ МОДЕЛЬ
-                  context.read<NavigationCubit>().openTab(
-                    Routes.createClient, 
+                  final form = Clients().forms.create;
+                  form.openForm(
+                    context, 
                     sourceTabId: widget.tabId,
                     args: c.toFormArgs()
                   );
