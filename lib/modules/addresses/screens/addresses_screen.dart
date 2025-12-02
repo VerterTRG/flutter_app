@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/logic/clients_cubit.dart';
 import 'package:flutter_app/logic/navigation_cubit.dart';
 import 'package:flutter_app/logic/addresses_cubit.dart';
+import 'package:flutter_app/modules/addresses/module.dart';
 import 'package:flutter_app/modules/clients/module.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_app/utils/common.dart';
@@ -135,6 +136,14 @@ class _AddressesScreenState extends State<AddressesScreen> {
                 leading: const Icon(Icons.location_on),
                 title: Text(a.city),
                 subtitle: Text(clientName),
+                onTap: () { 
+                  // Переходим к форме редактирования адреса
+                  Addresses().forms.details.openForm(
+                    context, 
+                    sourceTabId: widget.tabId,
+                    args: FormArguments({'id': a.id, 'clientId': a.clientId, 'city': a.city, 'zip': a.zip})
+                  );
+                },
                 // Можно добавить кнопку копирования адреса аналогично клиентам
               );
             }).toList()

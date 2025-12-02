@@ -1,6 +1,7 @@
 // --- PRODUCTS ---
 import 'package:flutter/material.dart';
 import 'package:flutter_app/logic/products_cubit.dart';
+import 'package:flutter_app/modules/products/module.dart';
 import 'package:flutter_app/utils/common.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -18,7 +19,11 @@ class ProductsScreen extends StatelessWidget {
       ElevatedButton(onPressed: () => cubit.addProduct(nameCtrl.text, double.tryParse(priceCtrl.text) ?? 0), child: const Text('Добавить')),
       Expanded(child: BlocBuilder<ProductsCubit, ProductsState>(
         builder: (context, state) {
-          return ListView(children: state.products.map((p) => ListTile(title: Text(p.name), trailing: Text('\$${p.price}'))).toList());
+          return ListView(children: state.products.map((p) => ListTile(onTap: () => {Products().forms.details.openForm(
+            context, 
+            sourceTabId: tabId,
+            args: FormArguments({'id': p.id, 'name': p.name, 'price': p.price})
+          )}, title: Text(p.name), subtitle: Text('Цена: \$${p.price.toStringAsFixed(2)}'))).toList());
         }
       ))
     ]));

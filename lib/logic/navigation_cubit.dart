@@ -81,7 +81,7 @@ class NavigationCubit extends Cubit<NavigationState> {
     // Иконка: либо из конфигурации маршрута, либо из модуля, либо дефолтная
     final icon = routeConfig?.icon ?? parentModule?.icon ?? Icons.extension;
     // Заголовок: либо из аргументов, либо дефолтный из модуля, либо сам ID
-    String title = args?.getValue<String>('title') ?? routeConfig?.title ?? parentModule?.title ?? 'Tab';
+    String title = args?.getValue<String>('name') ?? routeConfig?.title ?? parentModule?.title ?? 'Tab';
 
     // 5. Добавляем таб
     final currentTabs = List<TabItem>.from(state.tabs);

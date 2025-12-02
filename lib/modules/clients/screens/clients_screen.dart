@@ -86,6 +86,14 @@ class _ClientsScreenState extends State<ClientsScreen> {
         builder: (context, state) {
           return ListView(
             children: state.clients.map((c) => ListTile(
+              onTap: () { 
+                // Переходим к форме редактирования клиента
+                Clients().forms.edit.openForm(
+                  context, 
+                  sourceTabId: widget.tabId,
+                  args: FormArguments({'id': c.id, 'name': c.name, 'email': c.email})
+                );
+              },
               leading: CircleAvatar(child: Text(c.name[0])),
               title: Text(c.name),
               subtitle: c.email.isNotEmpty ? Text(c.email) : null,

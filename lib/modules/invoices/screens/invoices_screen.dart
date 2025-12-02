@@ -4,23 +4,48 @@ import 'package:flutter_app/logic/addresses_cubit.dart';
 import 'package:flutter_app/logic/clients_cubit.dart';
 import 'package:flutter_app/logic/invoices_cubit.dart';
 import 'package:flutter_app/modules/addresses/module.dart';
+import 'package:flutter_app/modules/invoices/module.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_app/utils/common.dart';
 import 'package:flutter_app/widgets/components/smart_dropdown.dart';
 
 class InvoicesScreen extends StatefulWidget {
   final String tabId;
-  const InvoicesScreen({super.key, required this.tabId, FormArguments? args}); // Инвойсам пока args не нужны
+  final FormArguments? args;
+  const InvoicesScreen({super.key, required this.tabId, this.args}); // Инвойсам пока args не нужны
   @override
   State<InvoicesScreen> createState() => _InvoicesScreenState();
 }
 
 class _InvoicesScreenState extends State<InvoicesScreen> {
-  // Для фильтрации адресов нам все же нужно знать текущего клиента,
-  // поэтому слушаем его контроллер
+
+  // 1. Объявляем контроллеры, которые используются в UI
   final clientCtrl = SelectionController<String>();
   final addressCtrl = SelectionController<String>();
 
+  // 2. Создаем карту ссылок на эти же контроллеры для _fillForm
+  late final Map<String, dynamic> _controllers = {
+    'clientId': clientCtrl,
+    'addressId': addressCtrl,
+  };
+
+  @override
+  void initState() {
+    super.initState();
+
+    _fillForm();
+  }
+  void _fillForm() {
+    if (widget.args == null) return;
+    _controllers.forEach((key, controller) {
+      final val = widget.args!.getValue(key);
+      if (val != null) {
+        if (controller is TextEditingController) controller.text = val.toString();
+        if (controller is SelectionController) controller.selectedItem = val.toString();
+      }
+    });
+  }
+  
   @override
   Widget build(BuildContext context) {
     final state = context.read<ClientsCubit>().state;
@@ -96,7 +121,11 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
       Expanded(child: BlocBuilder<InvoicesCubit, InvoicesState>(
         builder: (context, state) {
           return ListView(
-            children: state.invoices.map((i) => ListTile(title: Text('Invoice #${i.id}'))).toList()
+            children: state.invoices.map((i) => ListTile(onTap: () => {Invoices().forms.details.openForm(
+              context, 
+              sourceTabId: widget.tabId,
+              args: FormArguments({'id': i.id, 'clientId': i.clientId, 'addressId': i.addressId})
+            )}, title: Text('Инвойс ID: ${i.id}'), subtitle: Text('Клиент ID: ${i.clientId}, Адрес ID: ${i.addressId}'))).toList()
           );
         }
       ))
