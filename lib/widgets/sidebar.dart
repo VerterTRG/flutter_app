@@ -72,6 +72,7 @@ class SideBar extends StatelessWidget {
                 child: BlocBuilder<AuthCubit, AuthState>(
                   builder: (context, state) {
                     if (state is AuthAuthenticated) {
+                      final user = state.user;
                       return InkWell(
                         onTap: () {
                           // Открываем профиль
@@ -90,12 +91,10 @@ class SideBar extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             CircleAvatar(
-                              child: Text(state.username.isNotEmpty
-                                  ? state.username[0].toUpperCase()
-                                  : '?'),
+                              child: Text(user.initials),
                             ),
                             const SizedBox(height: 4),
-                            Text(state.username, style: const TextStyle(fontSize: 10)),
+                            Text(user.fullName, style: const TextStyle(fontSize: 10)),
                           ],
                         ),
                       );
