@@ -5,6 +5,8 @@ import 'package:flutter_app/logic/clients_cubit.dart';
 import 'package:flutter_app/logic/invoices_cubit.dart';
 import 'package:flutter_app/logic/products_cubit.dart';
 import 'package:flutter_app/modules/addresses/module.dart';
+import 'package:flutter_app/modules/auth/logic/auth_cubit.dart';
+import 'package:flutter_app/modules/auth/module.dart';
 import 'package:flutter_app/modules/clients/module.dart';
 import 'package:flutter_app/modules/dashboard/module.dart';
 import 'package:flutter_app/modules/invoices/module.dart';
@@ -27,6 +29,7 @@ void main() {
   AppModulesManager.register(Addresses());
   AppModulesManager.register(Products());
   AppModulesManager.register(Invoices());
+  AppModulesManager.register(AuthModule());
 
   runApp(const MyApp());
 }
@@ -38,6 +41,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => NavigationCubit()..init()),
+        BlocProvider(create: (_) => AuthCubit()..checkAuthStatus()),
         BlocProvider(create: (_) => ClientsCubit()),
         BlocProvider(create: (_) => AddressesCubit()),
         BlocProvider(create: (_) => ProductsCubit()),

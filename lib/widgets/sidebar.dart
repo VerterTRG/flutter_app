@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/core/module_registry.dart';
 import 'package:flutter_app/logic/navigation_cubit.dart';
+import 'package:flutter_app/modules/auth/logic/auth_cubit.dart';
+import 'package:flutter_app/modules/auth/module.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SideBar extends StatelessWidget {
@@ -62,6 +64,54 @@ class SideBar extends StatelessWidget {
                 label: Text(module.title), // Берем название прямо из модуля
               );
             }).toList(),
+          trailing: Expanded(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: BlocBuilder<AuthCubit, AuthState>(
+                  builder: (context, state) {
+                    if (state is AuthAuthenticated) {
+                      return InkWell(
+                        onTap: () {
+                          // Открываем профиль
+                          final authModule = AppModulesManager.getModuleById(AuthModule.id);
+                          // Мы знаем что у AuthModule openDefault открывает логин, а нам нужен профиль.
+                          // Но подождите, forms это интерфейс.
+                          // Лучше найти модуль и вызвать конкретный экшн если он есть,
+                          // или просто через FormsManager если мы знаем тип.
+                          // Но так как мы тут в общем коде, лучше использовать стандартный механизм.
+                          // В AuthModule openDefault открывает Login.
+                          // Нужно добавить в AuthModule логику: если авторизован -> профиль.
+                          // Или просто хардкод пути:
+                          (authModule as AuthModule).forms.openProfile.openForm(context);
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircleAvatar(
+                              child: Text(state.user.initials),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(state.user.username, style: const TextStyle(fontSize: 10)),
+                          ],
+                        ),
+                      );
+                    } else {
+                       return IconButton(
+                        icon: const Icon(Icons.login),
+                        onPressed: () {
+                           final authModule = AppModulesManager.getModuleById(AuthModule.id);
+                           authModule?.forms.openDefault.openForm(context);
+                        },
+                        tooltip: 'Login',
+                      );
+                    }
+                  },
+                ),
+              ),
+            ),
+          ),
         ),
         VerticalDivider(thickness: 0, width: 1, color: colors.secondary),
       ],
