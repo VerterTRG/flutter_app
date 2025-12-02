@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_app/modules/auth/models/user.dart';
 
 /// Сервис для работы с аутентификацией.
 /// Отвечает за общение с API и хранение токенов.
@@ -20,11 +21,11 @@ class AuthService {
   /// Ключи для хранения токенов
   static const String _accessTokenKey = 'access_token';
   static const String _refreshTokenKey = 'refresh_token';
-  static const String _usernameKey = 'username';
+  static const String _userKey = 'user_data';
 
   /// Получение токена (Login)
   /// POST /token/obtain
-  Future<Map<String, dynamic>> login(String username, String password) async {
+  Future<User> login(String username, String password) async {
     final url = Uri.parse('$_baseUrl/token/obtain');
     try {
       final response = await _httpClient.post(
@@ -36,8 +37,18 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         await _saveTokens(data['access'], data['refresh']);
-        await _storage.write(key: _usernameKey, value: username);
-        return data;
+        
+        // Создаем объект User из ответа API или используем username
+        final User user;
+        if (data.containsKey('user') && data['user'] != null) {
+          user = User.fromJson(data['user']);
+        } else {
+          // Если API не возвращает данные пользователя, создаем базовый объект
+          user = User(username: username);
+        }
+        
+        await _saveUser(user);
+        return user;
       } else {
         throw Exception('Login failed: ${response.statusCode} ${response.body}');
       }
@@ -105,7 +116,7 @@ class AuthService {
   Future<void> logout() async {
     await _storage.delete(key: _accessTokenKey);
     await _storage.delete(key: _refreshTokenKey);
-    await _storage.delete(key: _usernameKey);
+    await _storage.delete(key: _userKey);
   }
 
   /// Получение текущего access токена
@@ -113,14 +124,25 @@ class AuthService {
     return await _storage.read(key: _accessTokenKey);
   }
 
-  /// Получение сохраненного имени пользователя
-  Future<String?> getUsername() async {
-    return await _storage.read(key: _usernameKey);
+  /// Получение сохраненного пользователя
+  Future<User?> getUser() async {
+    final userJson = await _storage.read(key: _userKey);
+    if (userJson == null) return null;
+    try {
+      return User.fromJson(jsonDecode(userJson));
+    } catch (e) {
+      return null;
+    }
   }
 
   /// Сохранение токенов
   Future<void> _saveTokens(String access, String refresh) async {
     await _storage.write(key: _accessTokenKey, value: access);
     await _storage.write(key: _refreshTokenKey, value: refresh);
+  }
+
+  /// Сохранение пользователя
+  Future<void> _saveUser(User user) async {
+    await _storage.write(key: _userKey, value: jsonEncode(user.toJson()));
   }
 }

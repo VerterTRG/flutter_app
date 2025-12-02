@@ -13,6 +13,7 @@ class ProfileScreen extends StatelessWidget {
       body: BlocBuilder<AuthCubit, AuthState>(
         builder: (context, state) {
           if (state is AuthAuthenticated) {
+            final user = state.user;
             return Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 600),
@@ -24,18 +25,47 @@ class ProfileScreen extends StatelessWidget {
                         radius: 50,
                         backgroundColor: Theme.of(context).primaryColor,
                         child: Text(
-                          state.username.isNotEmpty ? state.username[0].toUpperCase() : '?',
+                          user.initials,
                           style: const TextStyle(fontSize: 40, color: Colors.white),
                         ),
                       ),
                     const SizedBox(height: 16),
                     Center(
                       child: Text(
-                        state.username,
+                        user.fullName,
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                     ),
+                    if (user.email != null && user.email!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Text(
+                          user.email!,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 32),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.person),
+                      title: const Text('Username'),
+                      subtitle: Text(user.username),
+                    ),
+                    if (user.firstName != null && user.firstName!.isNotEmpty)
+                      ListTile(
+                        leading: const Icon(Icons.badge),
+                        title: const Text('First Name'),
+                        subtitle: Text(user.firstName!),
+                      ),
+                    if (user.lastName != null && user.lastName!.isNotEmpty)
+                      ListTile(
+                        leading: const Icon(Icons.badge_outlined),
+                        title: const Text('Last Name'),
+                        subtitle: Text(user.lastName!),
+                      ),
                     const Divider(),
                     ListTile(
                       leading: const Icon(Icons.password),
