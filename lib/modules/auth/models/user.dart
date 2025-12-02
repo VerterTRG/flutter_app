@@ -36,9 +36,13 @@ class User extends Equatable {
 
   /// Создание пользователя из JSON
   factory User.fromJson(Map<String, dynamic> json) {
+    final username = json['username'] as String?;
+    if (username == null || username.isEmpty) {
+      throw ArgumentError('Username is required and cannot be empty');
+    }
     return User(
       id: json['id'] as int?,
-      username: json['username'] as String? ?? '',
+      username: username,
       email: json['email'] as String?,
       firstName: json['first_name'] as String?,
       lastName: json['last_name'] as String?,
