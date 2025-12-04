@@ -3,6 +3,7 @@ import 'package:flutter_app/core/module_registry.dart';
 import 'package:flutter_app/logic/navigation_cubit.dart';
 import 'package:flutter_app/modules/auth/logic/auth_cubit.dart';
 import 'package:flutter_app/modules/auth/module.dart';
+import 'package:flutter_app/utils/common.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SideBar extends StatelessWidget {
@@ -72,6 +73,8 @@ class SideBar extends StatelessWidget {
                 child: BlocBuilder<AuthCubit, AuthState>(
                   builder: (context, state) {
                     if (state is AuthAuthenticated) {
+                      final user = state.user;
+                      final fullAvatarUrl = getFullMediaUrl(user.avatarUrl);
                       return InkWell(
                         onTap: () {
                           // Открываем профиль
@@ -90,7 +93,8 @@ class SideBar extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             CircleAvatar(
-                              child: Text(state.user.initials),
+                              backgroundImage: fullAvatarUrl == null ? null : NetworkImage(fullAvatarUrl),
+                              child: fullAvatarUrl == null ? Text(user.initials) : null,
                             ),
                             const SizedBox(height: 4),
                             Text(state.user.username, style: const TextStyle(fontSize: 10)),

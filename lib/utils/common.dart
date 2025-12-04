@@ -1,4 +1,6 @@
 // 1. УНИВЕРСАЛЬНЫЙ КОНТЕЙНЕР ДАННЫХ
+import 'package:flutter_app/core/config.dart';
+
 class FormArguments {
   final Map<String, dynamic> data;
   // Добавляем коллбэк. 
@@ -44,4 +46,20 @@ class FormArguments {
     // 4. Если тип не поддерживается или не удалось спарсить
     return null;
   }
+}
+
+/// Утилита для формирования полного URL к медиа-файлам
+String? getFullMediaUrl(String? path) {
+  if (path == null || path.isEmpty) return null;
+  
+  // Если ссылка уже полная (http/https), возвращаем как есть
+  if (path.startsWith('http')) return path;
+
+  // Получаем базовый хост (например, http://127.0.0.1:8000)
+  final baseUrl = Uri.parse(AppConfig.baseApiUrl).origin;
+  
+  // Убедимся, что путь начинается с /
+  final normalizedPath = path.startsWith('/') ? path : '/$path';
+
+  return '$baseUrl$normalizedPath';
 }

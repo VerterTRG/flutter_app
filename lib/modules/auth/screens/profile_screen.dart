@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_app/utils/common.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_app/modules/auth/logic/auth_cubit.dart';
 import 'package:image_picker/image_picker.dart';
@@ -136,7 +136,7 @@ class ProfileScreen extends StatelessWidget {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       if (context.mounted) {
-        context.read<AuthCubit>().uploadLogo(File(pickedFile.path));
+        context.read<AuthCubit>().uploadLogo(pickedFile);
       }
     }
   }
@@ -156,6 +156,7 @@ class ProfileScreen extends StatelessWidget {
         builder: (context, state) {
           if (state is AuthAuthenticated) {
             final user = state.user;
+            final fullAvatarUrl = getFullMediaUrl(user.avatarUrl);
             return Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 600),
@@ -169,10 +170,10 @@ class ProfileScreen extends StatelessWidget {
                            CircleAvatar(
                               radius: 50,
                               backgroundColor: Theme.of(context).primaryColor,
-                              backgroundImage: user.avatarUrl != null
-                                 ? NetworkImage(user.avatarUrl!)
+                              backgroundImage: fullAvatarUrl != null
+                                 ? NetworkImage(fullAvatarUrl)
                                  : null,
-                              child: user.avatarUrl == null
+                              child: fullAvatarUrl == null
                                   ? Text(
                                       user.initials,
                                       style: const TextStyle(fontSize: 40, color: Colors.white),

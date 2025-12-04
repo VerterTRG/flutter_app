@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_app/models/user.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_app/modules/auth/services/auth_service.dart';
+import 'package:image_picker/image_picker.dart';
 
 // --- States ---
 
@@ -126,7 +127,7 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   /// Загрузка логотипа
-  Future<void> uploadLogo(File file) async {
+  Future<void> uploadLogo(XFile file) async {
     if (state is AuthAuthenticated) {
       try {
         final updatedUser = await _authService.uploadLogo(file);
