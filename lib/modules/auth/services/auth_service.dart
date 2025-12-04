@@ -1,15 +1,24 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_app/core/config.dart';
 import 'package:flutter_app/models/user.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+
+class AuthException implements Exception {
+  final String message;
+  AuthException(this.message);
+  @override
+  String toString() => message; // Возвращаем только сообщение
+}
 /// Сервис для работы с аутентификацией.
 /// Отвечает за общение с API и хранение токенов.
 class AuthService {
   // Базовый URL API
   // В реальном приложении лучше вынести в конфиг.
   // Для Android эмулятора используйте 10.0.2.2 вместо 127.0.0.1
-  static const String _baseUrl = 'http://127.0.0.1:8000/api';
+  String get _baseApiUrl => '${AppConfig.baseApiUrl}/auth';
 
   final FlutterSecureStorage _storage;
   final http.Client _httpClient;
@@ -26,7 +35,7 @@ class AuthService {
   /// Получение токена (Login)
   /// POST /token/obtain
   Future<User> login(String username, String password) async {
-    final url = Uri.parse('$_baseUrl/token/obtain');
+    final url = Uri.parse('$_baseApiUrl/token/pair');
     try {
       final response = await _httpClient.post(
         url,
@@ -47,10 +56,17 @@ class AuthService {
 
         return user;
       } else {
-        throw Exception('Login failed: ${response.statusCode} ${response.body}');
+        throw AuthException('Login failed: ${response.statusCode} ${response.body}');
       }
+    } on http.ClientException catch (e) {
+      debugPrint('Server error: $e');
+      throw Exception('Server is unreachable. Please try again later.');
+    } on AuthException catch(e) {
+      debugPrint('Login error: $e');
+      throw Exception('Invalid credentials. Please check your username and password.');
     } catch (e) {
-      throw Exception('Login error: $e');
+      debugPrint('Unexpected error during login: $e');
+      throw Exception('An unexpected error occurred. Please try again.');
     }
   }
 
@@ -60,7 +76,7 @@ class AuthService {
     final refreshToken = await _storage.read(key: _refreshTokenKey);
     if (refreshToken == null) return null;
 
-    final url = Uri.parse('$_baseUrl/token/refresh');
+    final url = Uri.parse('$_baseApiUrl/token/refresh');
     try {
       final response = await _httpClient.post(
         url,
@@ -95,7 +111,7 @@ class AuthService {
     final token = await _storage.read(key: _accessTokenKey);
     if (token == null) return false;
 
-    final url = Uri.parse('$_baseUrl/token/verify');
+    final url = Uri.parse('$_baseApiUrl/token/verify');
     try {
       final response = await _httpClient.post(
         url,

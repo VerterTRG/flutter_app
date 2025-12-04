@@ -1,0 +1,32 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Flutter (Chrome - Port 3100)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "chrome",
+            "program": "lib/main.dart",
+            "args": [
+                "--web-port",
+                "3100",
+                // Опционально: отключить web security, если CORS на бэке еще не настроен идеально
+                // "--web-browser-flag", "--disable-web-security" 
+            ]
+        },
+        {
+            "name": "Flutter (macOS)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "macos",
+            "program": "lib/main.dart"
+        },
+        {
+            "name": "Flutter (Mobile - Auto)",
+            "request": "launch",
+            "type": "dart",
+            // deviceId не указан// filepath: /Users/alex/Projects/flutter_app/.vscode/launch.json
+            "program": "lib/main.dart"
+        }
+    ]
+}

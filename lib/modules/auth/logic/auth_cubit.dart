@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_app/models/user.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_app/modules/auth/services/auth_service.dart';
@@ -42,8 +43,8 @@ class AuthCubit extends Cubit<AuthState> {
   final AuthService _authService;
 
   AuthCubit({AuthService? authService})
-      : _authService = authService ?? AuthService(),
-        super(AuthInitial());
+    : _authService = authService ?? AuthService(),
+      super(AuthInitial());
 
   /// Проверка статуса авторизации при старте приложения
   Future<void> checkAuthStatus() async {
@@ -77,8 +78,15 @@ class AuthCubit extends Cubit<AuthState> {
       final user = await _authService.login(username, password);
       // После успешного входа
       emit(AuthAuthenticated(user: user));
+    } on AuthException catch (e) {
+      // Тут e уже имеет тип AuthException и поле message
+      emit(AuthFailure(e.message));
+      emit(AuthUnauthenticated());
     } catch (e) {
-      emit(AuthFailure(e.toString()));
+      debugPrint('Login error in Cubit: $e');
+      // Для всех остальных непредвиденных ошибок
+      // emit(AuthFailure("Произошла неизвестная ошибка"));
+      emit(AuthFailure(e.toString().replaceAll('Exception: ', '')));
       emit(AuthUnauthenticated());
     }
   }
