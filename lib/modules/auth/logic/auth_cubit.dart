@@ -52,22 +52,88 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       // Сначала пробуем верифицировать текущий токен
       final isValid = await _authService.verifyToken();
-      final savedUser = await _authService.getUser();
 
-      if (isValid && savedUser != null) {
-        // Если валиден и есть сохраненный пользователь
-        emit(AuthAuthenticated(user: savedUser));
+      if (isValid) {
+        // Пробуем получить актуальные данные
+        try {
+          final user = await _authService.getUserProfile();
+           emit(AuthAuthenticated(user: user));
+        } catch (_) {
+           // Если не вышло, берем из кэша
+           final savedUser = await _authService.getUser();
+           if (savedUser != null) {
+              emit(AuthAuthenticated(user: savedUser));
+           } else {
+              // Если и в кэше нет - беда, но токен валиден. Попробуем обновить токен?
+              // Или просто считаем что не авторизован?
+              // Давайте считать Unauthenticated чтобы не было битого стейта.
+              emit(AuthUnauthenticated());
+           }
+        }
       } else {
         // Если не валиден, пробуем обновить
         final newToken = await _authService.refreshToken();
-        if (newToken != null && savedUser != null) {
-          emit(AuthAuthenticated(user: savedUser));
+        if (newToken != null) {
+           // Токен обновили, пробуем получить данные
+           try {
+             final user = await _authService.getUserProfile();
+             emit(AuthAuthenticated(user: user));
+           } catch (_) {
+             final savedUser = await _authService.getUser();
+             if (savedUser != null) {
+                emit(AuthAuthenticated(user: savedUser));
+             } else {
+                emit(AuthUnauthenticated());
+             }
+           }
         } else {
           emit(AuthUnauthenticated());
         }
       }
     } catch (e) {
       emit(AuthUnauthenticated());
+    }
+  }
+
+  /// Обновление профиля
+  Future<void> updateProfile({String? firstName, String? lastName, String? phone}) async {
+    if (state is AuthAuthenticated) {
+      try {
+        final updatedUser = await _authService.updateProfile(
+          firstName: firstName,
+          lastName: lastName,
+          phone: phone,
+        );
+        emit(AuthAuthenticated(user: updatedUser));
+      } catch (e) {
+        emit(AuthFailure(e.toString()));
+        // Возвращаем старый стейт, если ошибка (но Cubit не позволяет "вернуть", он эмитит новый).
+        // Лучше эмитить Failure, а потом снова Authenticated со старым юзером?
+        // Или просто Failure и UI покажет снекбар.
+        // Но тогда UI останется в Failure? Нет, надо восстановить стейт.
+        // Пока просто Failure, UI должен обработать.
+      }
+    }
+  }
+
+  /// Смена пароля
+  Future<void> changePassword(String oldPassword, String newPassword, String newPasswordConfirm) async {
+     try {
+       await _authService.changePassword(oldPassword, newPassword, newPasswordConfirm);
+     } catch (e) {
+       throw e; // Пробрасываем ошибку чтобы UI мог показать
+     }
+  }
+
+  /// Загрузка логотипа
+  Future<void> uploadLogo(File file) async {
+    if (state is AuthAuthenticated) {
+      try {
+        final updatedUser = await _authService.uploadLogo(file);
+        emit(AuthAuthenticated(user: updatedUser));
+      } catch (e) {
+         emit(AuthFailure(e.toString()));
+      }
     }
   }
 

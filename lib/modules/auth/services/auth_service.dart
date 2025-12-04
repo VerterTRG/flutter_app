@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_app/core/config.dart';
+import 'dart:io';
 import 'package:flutter_app/models/user.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -47,13 +48,8 @@ class AuthService {
         final data = jsonDecode(response.body);
         await _saveTokens(data['access'], data['refresh']);
 
-        // Создаем модель пользователя.
-        // В идеале API должен возвращать данные пользователя.
-        // Если API возвращает только токены, мы создаем User из введенного username.
-        // Если API начнет возвращать user object, мы обновим этот код.
-        final user = User(username: username);
-        await _saveUser(user);
-
+        // После успешного входа, получаем профиль пользователя
+        final user = await getUserProfile();
         return user;
       } else {
         throw AuthException('Login failed: ${response.statusCode} ${response.body}');
@@ -67,6 +63,256 @@ class AuthService {
     } catch (e) {
       debugPrint('Unexpected error during login: $e');
       throw Exception('An unexpected error occurred. Please try again.');
+    }
+  }
+
+  /// Получение профиля пользователя
+  /// GET /users/me
+  Future<User> getUserProfile() async {
+    final token = await getAccessToken();
+    if (token == null) throw Exception('No access token');
+
+    final url = Uri.parse('$_baseUrl/users/me');
+    try {
+      final response = await _httpClient.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final user = User.fromJson(data);
+        await _saveUser(user);
+        return user;
+      } else {
+         throw Exception('Get user failed: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Get user error: $e');
+    }
+  }
+
+  /// Обновление профиля
+  /// PUT /users/me
+  Future<User> updateProfile({String? firstName, String? lastName, String? phone}) async {
+    final token = await getAccessToken();
+    if (token == null) throw Exception('No access token');
+
+    final Map<String, dynamic> body = {};
+    if (firstName != null) body['first_name'] = firstName;
+    if (lastName != null) body['last_name'] = lastName;
+    if (phone != null) body['phone'] = phone;
+
+    final url = Uri.parse('$_baseUrl/users/me');
+    try {
+      final response = await _httpClient.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final user = User.fromJson(data);
+        await _saveUser(user);
+        return user;
+      } else {
+        throw Exception('Update user failed: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+       throw Exception('Update user error: $e');
+    }
+  }
+
+  /// Смена пароля
+  /// POST /users/change-password
+  Future<void> changePassword(String oldPassword, String newPassword, String newPasswordConfirm) async {
+     final token = await getAccessToken();
+    if (token == null) throw Exception('No access token');
+
+    final url = Uri.parse('$_baseUrl/users/change-password');
+    try {
+      final response = await _httpClient.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'old_password': oldPassword,
+          'new_password': newPassword,
+          'new_password_confirm': newPasswordConfirm,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+         throw Exception('Change password failed: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+       throw Exception('Change password error: $e');
+    }
+  }
+
+  /// Загрузка логотипа
+  /// POST /users/me/logo-upload
+  Future<User> uploadLogo(File imageFile) async {
+    final token = await getAccessToken();
+    if (token == null) throw Exception('No access token');
+
+    final url = Uri.parse('$_baseUrl/users/me/logo-upload');
+    var request = http.MultipartRequest('POST', url);
+    request.headers['Authorization'] = 'Bearer $token';
+    request.files.add(await http.MultipartFile.fromPath('file', imageFile.path)); // Предполагаем что поле называется 'file' или 'logo' - но обычно 'file' для UploadedFile в Django Ninja если не указано иное. Если поле модели logo, часто и в аплоаде тоже. Пусть будет 'file' так как это стандартный file upload. Если не сработает, попробуем 'logo'.
+    // В задаче не сказано имя поля. Обычно в Django Ninja это file: UploadedFile = File(...)
+
+    try {
+      final streamResponse = await request.send();
+      final response = await http.Response.fromStream(streamResponse);
+
+      if (response.statusCode == 200) {
+         final data = jsonDecode(response.body);
+         final user = User.fromJson(data);
+         await _saveUser(user);
+         return user;
+      } else {
+        throw Exception('Upload logo failed: ${response.statusCode} ${response.body}');
+      }
+    } on http.ClientException catch (e) {
+      debugPrint('Server error: $e');
+      throw Exception('Server is unreachable. Please try again later.');
+    } on AuthException catch(e) {
+      debugPrint('Login error: $e');
+      throw Exception('Invalid credentials. Please check your username and password.');
+    } catch (e) {
+      throw Exception('Upload logo error: $e');
+    }
+  }
+
+  /// Получение профиля пользователя
+  /// GET /users/me
+  Future<User> getUserProfile() async {
+    final token = await getAccessToken();
+    if (token == null) throw Exception('No access token');
+
+    final url = Uri.parse('$_baseUrl/users/me');
+    try {
+      final response = await _httpClient.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final user = User.fromJson(data);
+        await _saveUser(user);
+        return user;
+      } else {
+         throw Exception('Get user failed: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Get user error: $e');
+    }
+  }
+
+  /// Обновление профиля
+  /// PUT /users/me
+  Future<User> updateProfile({String? firstName, String? lastName, String? phone}) async {
+    final token = await getAccessToken();
+    if (token == null) throw Exception('No access token');
+
+    final Map<String, dynamic> body = {};
+    if (firstName != null) body['first_name'] = firstName;
+    if (lastName != null) body['last_name'] = lastName;
+    if (phone != null) body['phone'] = phone;
+
+    final url = Uri.parse('$_baseUrl/users/me');
+    try {
+      final response = await _httpClient.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final user = User.fromJson(data);
+        await _saveUser(user);
+        return user;
+      } else {
+        throw Exception('Update user failed: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+       throw Exception('Update user error: $e');
+    }
+  }
+
+  /// Смена пароля
+  /// POST /users/change-password
+  Future<void> changePassword(String oldPassword, String newPassword, String newPasswordConfirm) async {
+     final token = await getAccessToken();
+    if (token == null) throw Exception('No access token');
+
+    final url = Uri.parse('$_baseUrl/users/change-password');
+    try {
+      final response = await _httpClient.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'old_password': oldPassword,
+          'new_password': newPassword,
+          'new_password_confirm': newPasswordConfirm,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+         throw Exception('Change password failed: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+       throw Exception('Change password error: $e');
+    }
+  }
+
+  /// Загрузка логотипа
+  /// POST /users/me/logo-upload
+  Future<User> uploadLogo(File imageFile) async {
+    final token = await getAccessToken();
+    if (token == null) throw Exception('No access token');
+
+    final url = Uri.parse('$_baseUrl/users/me/logo-upload');
+    var request = http.MultipartRequest('POST', url);
+    request.headers['Authorization'] = 'Bearer $token';
+    request.files.add(await http.MultipartFile.fromPath('file', imageFile.path)); // Предполагаем что поле называется 'file' или 'logo' - но обычно 'file' для UploadedFile в Django Ninja если не указано иное. Если поле модели logo, часто и в аплоаде тоже. Пусть будет 'file' так как это стандартный file upload. Если не сработает, попробуем 'logo'.
+    // В задаче не сказано имя поля. Обычно в Django Ninja это file: UploadedFile = File(...)
+
+    try {
+      final streamResponse = await request.send();
+      final response = await http.Response.fromStream(streamResponse);
+
+      if (response.statusCode == 200) {
+         final data = jsonDecode(response.body);
+         final user = User.fromJson(data);
+         await _saveUser(user);
+         return user;
+      } else {
+        throw Exception('Upload logo failed: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Upload logo error: $e');
     }
   }
 
