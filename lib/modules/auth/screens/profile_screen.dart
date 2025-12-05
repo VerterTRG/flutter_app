@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/theme.dart';
 import 'package:flutter_app/utils/common.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_app/modules/auth/logic/auth_cubit.dart';
@@ -143,15 +144,16 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
-      body: BlocConsumer<AuthCubit, AuthState>(
+    var colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.all(20), 
+      child: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
-           if (state is AuthFailure) {
-             ScaffoldMessenger.of(context).showSnackBar(
-               SnackBar(content: Text(state.message)),
-             );
-           }
+            if (state is AuthFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message)),
+              );
+            }
         },
         builder: (context, state) {
           if (state is AuthAuthenticated) {
@@ -176,7 +178,7 @@ class ProfileScreen extends StatelessWidget {
                               child: fullAvatarUrl == null
                                   ? Text(
                                       user.initials,
-                                      style: const TextStyle(fontSize: 40, color: Colors.white),
+                                      style: TextStyle(fontSize: 40, color: colors.onPrimary),
                                     )
                                   : null,
                             ),
@@ -184,8 +186,8 @@ class ProfileScreen extends StatelessWidget {
                               right: 0,
                               bottom: 0,
                               child: IconButton(
-                                icon: const Icon(Icons.camera_alt, color: Colors.white),
-                                style: IconButton.styleFrom(backgroundColor: Colors.black54),
+                                icon: Icon(Icons.camera_alt, color: colors.onPrimary),
+                                style: IconButton.styleFrom(backgroundColor: colors.primary),
                                 onPressed: () => _pickImage(context),
                               ),
                             ),
@@ -202,9 +204,9 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         if (user.isStaff) ...[
                           const SizedBox(width: 8),
-                          const Tooltip(
+                          Tooltip(
                             message: 'Staff Member',
-                            child: Icon(Icons.verified, color: Colors.blue),
+                            child: Icon(Icons.admin_panel_settings, color: colors.attention), // Changed attention to secondary as attention might be missing
                           )
                         ]
                       ],
@@ -243,8 +245,8 @@ class ProfileScreen extends StatelessWidget {
                     ),
                      const Divider(),
                     ListTile(
-                      leading: const Icon(Icons.logout, color: Colors.red),
-                      title: const Text('Logout', style: TextStyle(color: Colors.red)),
+                      leading: Icon(Icons.logout, color: colors.attention),
+                      title: Text('Logout', style: TextStyle(color: colors.attention)),
                       onTap: () {
                          context.read<AuthCubit>().logout();
                       },
