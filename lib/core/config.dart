@@ -2,6 +2,7 @@ import 'package:flutter_app/core/module_registry.dart';
 import 'package:flutter_app/modules/addresses/module.dart';
 import 'package:flutter_app/modules/auth/module.dart';
 import 'package:flutter_app/modules/clients/module.dart';
+import 'package:flutter_app/modules/company/module.dart';
 import 'package:flutter_app/modules/dashboard/module.dart';
 import 'package:flutter_app/modules/invoices/module.dart';
 import 'package:flutter_app/modules/products/module.dart';
@@ -14,6 +15,7 @@ class AppConfig {
   /// Список модулей приложения для регистрации
   static final List<AppModule> modules = [
     Dashboard(),
+    CompanyModule(),
     Clients(),
     Addresses(),
     Products(),
